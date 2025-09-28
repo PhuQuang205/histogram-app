@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import {
 	Select,
@@ -11,65 +11,39 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Settings } from "lucide-react";
-import Shuffle from "@/components/custom/Shuffle";
 import { useDebouncedCallback } from "use-debounce";
-
-export type ProcessingType = "equalization" | "stretching" | "specification";
-
-interface ProcessingParameters {
-	stretchMin: number;
-	stretchMax: number;
-	clipLimit: number;
-	tileSize: number;
-}
-
-interface ProcessingControlsProps {
-	processingType: ProcessingType;
-	parameters: ProcessingParameters;
-	onProcessingTypeChange: (type: ProcessingType) => void;
-	onParametersChange: (params: Partial<ProcessingParameters>) => void;
-}
-
-const processingOptions = [
-	{
-		value: "equalization",
-		label: "Histogram Equalization",
-		description: "Distribute intensity evenly",
-	},
-	{
-		value: "stretching",
-		label: "Histogram Stretching",
-		description: "Expand the intensity range",
-	},
-	{
-		value: "specification",
-		label: "Histogram Specification",
-		description: "Apply a target histogram",
-	},
-];
+import { HeaderCard } from "@/components/header-card";
+import { ProcessingControlsProps, processingOptions } from "@/context";
+import { ImageUploadMatching } from "@/components/ImageUploadMatching";
 
 export const ProcessController = ({
 	processingType,
 	parameters,
 	onProcessingTypeChange,
 	onParametersChange,
+	
 }: ProcessingControlsProps) => {
-	const [localClipLimit, setLocalClipLimit] = useState(parameters.clipLimit);
-	const [localTileSize, setLocalTileSize] = useState(parameters.tileSize);
-
-	// đồng bộ khi cha reset params
-	useEffect(() => {
-		setLocalClipLimit(parameters.clipLimit);
-		setLocalTileSize(parameters.tileSize);
-	}, [parameters.clipLimit, parameters.tileSize]);
+	const [c, setC] = useState(parameters.c);
+	const [stretchMin, setStretchMin] = useState<number>(parameters.stretchMin);
+	const [stretchMax, setStretchMax] = useState<number>(parameters.stretchMax);
+	const [keepBackground, setKeepBackground] = useState<boolean>(
+		parameters.keepBackground
+	);
 
 	const [debouncedUpdateClip] = useDebouncedCallback((value: number) => {
-		onParametersChange({ clipLimit: value });
+		onParametersChange({ c: value });
 	}, 700);
 
-	const [debouncedUpdateTile] = useDebouncedCallback((value: number) => {
-		onParametersChange({ tileSize: value });
+	// Debounce cho slicing (stretchMin, stretchMax)
+	const [debouncedUpdateStretchMin] = useDebouncedCallback((value: number) => {
+		onParametersChange({ stretchMin: value });
 	}, 700);
+
+	const [debouncedUpdateStretchMax] = useDebouncedCallback((value: number) => {
+		onParametersChange({ stretchMax: value });
+	}, 700);
+
+	const [matchFile, setMatchFile] = useState<File | null>(parameters.matchFile);
 
 	const currentOption = processingOptions.find(
 		(option) => option.value === processingType
@@ -77,26 +51,8 @@ export const ProcessController = ({
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="flex items-center gap-1.5 font-cascadia font-bold text-xl py-4 text-white">
-				<Settings className="size-6" />
-				<div className="mt-1">
-					<Shuffle
-						className="text-white text-lg leading-0.5"
-						text="Setting Image"
-						shuffleDirection="right"
-						duration={0.35}
-						animationMode="evenodd"
-						shuffleTimes={1}
-						ease="power3.out"
-						stagger={0.03}
-						threshold={0.1}
-						triggerOnce={true}
-						triggerOnHover={true}
-						respectReducedMotion={true}
-					/>
-				</div>
-			</div>
-			{/* chọn phương thức xử lý */}
+			<HeaderCard icon={Settings} text="Setting Image" />
+			{/* Phần chọn phương thức xử lý */}
 			<Select value={processingType} onValueChange={onProcessingTypeChange}>
 				<SelectTrigger>
 					<SelectValue />
@@ -117,44 +73,98 @@ export const ProcessController = ({
 					{currentOption.description}
 				</Badge>
 			)}
+			{(() => {
+				switch (processingType) {
+					case "equalization":
+						return <></>;
+						break;
+					case "matching":
+						return (
+							<ImageUploadMatching
+								onImageUpload={(file) => {
+									setMatchFile(file);
+									onParametersChange({ matchFile: file }); // gửi ra component cha
+								}}
+							/>
+						);
+						break;
+					case "log":
+						return (
+							<div>
+								<label className="text-sm text-white font-medium my-2 block">
+									C: {c}
+								</label>
+								<Slider
+									value={[c]}
+									onValueChange={([value]) => {
+										setC(value);
+										debouncedUpdateClip(value);
+									}}
+									min={1}
+									max={10}
+									step={0.1}
+								/>
+							</div>
+						);
+					case "slicing":
+						return (
+							<div className="flex flex-col gap-4">
+								{/* Slider cho ngưỡng a */}
+								<div>
+									<label className="text-sm text-white font-medium my-2 block">
+										Ngưỡng a: {stretchMin}
+									</label>
+									<Slider
+										value={[stretchMin]}
+										onValueChange={([value]) => {
+											setStretchMin(value);
+											debouncedUpdateStretchMin(value);
+										}}
+										min={0}
+										max={255}
+										step={1}
+									/>
+								</div>
 
-			{processingType === "equalization" && (
-				<div className="font-cascadia text-white flex flex-col gap-4">
-					{/* Clip Limit */}
-					<div>
-						<label className="text-sm font-medium my-2 block">
-							Clip Limit: {localClipLimit}
-						</label>
-						<Slider
-							value={[localClipLimit]}
-							onValueChange={([value]) => {
-								setLocalClipLimit(value); // update UI mượt
-								debouncedUpdateClip(value); // sync lên cha sau 300ms
-							}}
-							min={1}
-							max={10}
-							step={0.1}
-						/>
-					</div>
+								{/* Slider cho ngưỡng b */}
+								<div>
+									<label className="text-sm text-white font-medium my-2 block">
+										Ngưỡng b: {stretchMax}
+									</label>
+									<Slider
+										value={[stretchMax]}
+										onValueChange={([value]) => {
+											setStretchMax(value);
+											debouncedUpdateStretchMax(value);
+										}}
+										min={0}
+										max={255}
+										step={1}
+									/>
+								</div>
 
-					{/* Tile Size */}
-					<div>
-						<label className="text-sm font-medium my-2 block">
-							Tile Size: {localTileSize}x{localTileSize}
-						</label>
-						<Slider
-							value={[localTileSize]}
-							onValueChange={([value]) => {
-								setLocalTileSize(value);
-								debouncedUpdateTile(value);
-							}}
-							min={4}
-							max={16}
-							step={2}
-						/>
-					</div>
-				</div>
-			)}
+								{/* Checkbox giữ nền hay không */}
+								<div className="flex items-center gap-2 mt-2">
+									<input
+										type="checkbox"
+										checked={keepBackground ?? false}
+										onChange={(e) => {
+											const checked = e.target.checked;
+											setKeepBackground(checked);
+											onParametersChange({ keepBackground: checked });
+										}}
+									/>
+									<label className="text-sm text-white font-medium">
+										Giữ nền (Keep background)
+									</label>
+								</div>
+							</div>
+						);
+
+					default:
+						return "";
+				}
+			})()}
 		</div>
 	);
 };
