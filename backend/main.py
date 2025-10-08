@@ -124,24 +124,24 @@ async def histogram_matching(
 
 
 
-@app.post("/histogram-threshold/")
-async def histogram_threshold(file: UploadFile = File(...), threshold: int = Form(128)):
-    """
-    Thresholding: cắt ảnh theo mức ngưỡng
-    - threshold: giá trị 0-255
-    """
-    contents = await file.read()
-    np_arr = np.frombuffer(contents, np.uint8)
-    img = cv2.imdecode(np_arr, cv2.IMREAD_GRAYSCALE)
+# @app.post("/histogram-threshold/")
+# async def histogram_threshold(file: UploadFile = File(...), threshold: int = Form(128)):
+#     """
+#     Thresholding: cắt ảnh theo mức ngưỡng
+#     - threshold: giá trị 0-255
+#     """
+#     contents = await file.read()
+#     np_arr = np.frombuffer(contents, np.uint8)
+#     img = cv2.imdecode(np_arr, cv2.IMREAD_GRAYSCALE)
 
-    if img is None:
-        return JSONResponse(status_code=400, content={"error": "Invalid image file"})
+#     if img is None:
+#         return JSONResponse(status_code=400, content={"error": "Invalid image file"})
 
-    _, thresh_img = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
+#     _, thresh_img = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
 
-    return {
-        "processedImage": encode_image_to_base64(thresh_img),
-    }
+#     return {
+#         "processedImage": encode_image_to_base64(thresh_img),
+#     }
 
 
 @app.post("/histogram-slicing/")

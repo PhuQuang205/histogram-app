@@ -28,7 +28,7 @@ export const processingOptions = [
     },
     {
         value: "slicing",
-        label: "Histogram Clicing",
+        label: "Histogram Slicing",
         description: "Apply a target histogram",
     },
 ];

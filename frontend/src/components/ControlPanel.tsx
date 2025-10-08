@@ -168,7 +168,7 @@ export const ControlPanel = () => {
 							{originalImage ? (
 								<div className="border-2 border-sky-300 rounded-xl">
 									<div className="py-4 px-8">
-										<HeaderCard icon={ChartArea} text="Analyst Image" />
+										<HeaderCard icon={ChartArea} text="Analysis Image" />
 										<div className="pb-4">
 											<div className="space-y-6 font-cascadia">
 												<div>

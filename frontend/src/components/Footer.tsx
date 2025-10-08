@@ -2,21 +2,10 @@ import { ArrowUpRight } from "lucide-react";
 
 const navLinks = [
 	{
-		title: "Youtube",
+		title: "By Quang",
 		href: "#",
 	},
-	{
-		title: "Twiter",
-		href: "#",
-	},
-	{
-		title: "Facebook",
-		href: "#",
-	},
-	{
-		title: "LinkedIn",
-		href: "#",
-	},
+	
 ];
 
 
