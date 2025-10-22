@@ -1,7 +1,7 @@
-# 🖼️ Histogram App — Image Histogram Processing Tool
+# 🖼️ Histogram App - Image Histogram Processing Tool
 
 **Histogram App** is a web-based tool for grayscale image histogram processing.  
-It allows users to apply multiple transformations such as equalization, matching, logarithmic scaling, and slicing — all through an interactive frontend interface and FastAPI + OpenCV backend.
+It allows users to apply multiple transformations such as equalization, matching, logarithmic scaling, and slicing - all through an interactive frontend interface and FastAPI + OpenCV backend.
 
 🔗 **Live Demo UI:** [https://histogram-frontend.vercel.app/](https://histogram-frontend.vercel.app/)
 
